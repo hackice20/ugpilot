@@ -1,0 +1,23 @@
+# Private SearXNG instance for UGPilot (bot/API only).
+# JSON enabled for internal search skill. Do not expose this port publicly on Oracle ARM.
+# Official image is multi-arch (amd64 + arm64).
+
+use_default_settings: true
+
+server:
+  limiter: false
+  image_proxy: true
+  # secret_key is injected via SEARXNG_SECRET env / settings override at runtime;
+  # keep a placeholder so first boot never uses the default "ultrasecretkey" warning path.
+  secret_key: "ugpilot-change-me-via-env"
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: "en"
+  formats:
+    - html
+    - json
+
+ui:
+  static_use_hash: true
