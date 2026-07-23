@@ -20,9 +20,9 @@ importers:
 
   apps/telegram:
     dependencies:
-      '@ugpilot/agents-placement':
+      '@ugpilot/agents-yc':
         specifier: workspace:*
-        version: link:../../packages/agents/placement
+        version: link:../../packages/agents/yc
       '@ugpilot/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -58,7 +58,7 @@ importers:
         specifier: ^5.7.2
         version: 5.9.3
 
-  packages/agents/placement:
+  packages/agents/yc:
     dependencies:
       '@ugpilot/logger':
         specifier: workspace:*

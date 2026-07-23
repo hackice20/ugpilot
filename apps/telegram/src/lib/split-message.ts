@@ -1,5 +1,5 @@
-/** Telegram sendMessage hard limit. */
-export const TELEGRAM_MAX_MESSAGE_LENGTH = 4096;
+/** Telegram sendMessage hard limit helpers. */
+export { TELEGRAM_MAX_MESSAGE_LENGTH } from "../constants.js";
 
 /**
  * Split text into chunks that fit Telegram's message limit.
@@ -7,7 +7,7 @@ export const TELEGRAM_MAX_MESSAGE_LENGTH = 4096;
  */
 export function splitTelegramMessage(
   text: string,
-  maxLen = TELEGRAM_MAX_MESSAGE_LENGTH,
+  maxLen = 4096,
 ): string[] {
   const trimmed = text.trimEnd();
   if (!trimmed) return [];
@@ -18,10 +18,8 @@ export function splitTelegramMessage(
 
   while (remaining.length > maxLen) {
     const window = remaining.slice(0, maxLen);
-    const breakAt =
-      lastIndexOfAny(window, ["\n\n", "\n", " "]) > maxLen * 0.4
-        ? lastIndexOfAny(window, ["\n\n", "\n", " "])
-        : maxLen;
+    const softBreak = lastIndexOfAny(window, ["\n\n", "\n", " "]);
+    const breakAt = softBreak > maxLen * 0.4 ? softBreak : maxLen;
 
     chunks.push(remaining.slice(0, breakAt).trimEnd());
     remaining = remaining.slice(breakAt).trimStart();

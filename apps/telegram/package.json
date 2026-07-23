@@ -11,7 +11,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@ugpilot/agents-placement": "workspace:*",
+    "@ugpilot/agents-yc": "workspace:*",
     "@ugpilot/db": "workspace:*",
     "@ugpilot/logger": "workspace:*",
     "@ugpilot/skills-email": "workspace:*",

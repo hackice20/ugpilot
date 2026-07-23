@@ -17,7 +17,7 @@ ugpilot/
 │   │   ├── search/        # SearXNG
 │   │   └── media/         # PDF / DOCX / image / audio
 │   └── agents/
-│       └── placement/     # YC outreach helpers
+│       └── yc/            # YC company search + outreach prompts
 ├── docker/                # postgres, searxng
 └── docs/deployment/       # Oracle ARM notes
 ```
