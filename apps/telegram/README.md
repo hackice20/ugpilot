@@ -36,7 +36,7 @@ Passwords are AES-encrypted in Postgres (`MAIL_SECRET`).
 
 ## Media context
 
-Send PDF, DOCX, images, or voice/audio. Stored under `.storage`; text is extracted and kept in chat history.
+Send PDF, DOCX, images, or voice/audio. Stored via `@ugpilot/storage` (`STORAGE_DRIVER=local` → `.storage`, or `r2` → Cloudflare R2 in prod); text is extracted and kept in chat history.
 
 - PDF/DOCX/image without caption → saved; ask later (`/files`)
 - With caption → answered using that file as context

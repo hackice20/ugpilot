@@ -1,54 +1,51 @@
-import fs from "node:fs/promises";
-import path from "node:path";
-import { randomUUID } from "node:crypto";
+import { createLocalDriver } from "./local.js";
+import { createR2Driver } from "./r2.js";
+import type { SaveBufferInput, SavedObject, StorageDriver } from "./types.js";
 
-function rootDir(): string {
-  return process.env.STORAGE_PATH || "./.storage";
+export type { SaveBufferInput, SavedObject };
+
+function driverName(): string {
+  return (process.env.STORAGE_DRIVER || "local").trim().toLowerCase();
 }
 
+let driver: StorageDriver | undefined;
+
+function getDriver(): StorageDriver {
+  if (driver) return driver;
+
+  switch (driverName()) {
+    case "local":
+      driver = createLocalDriver();
+      break;
+    case "r2":
+      driver = createR2Driver();
+      break;
+    default:
+      throw new Error(
+        `Unknown STORAGE_DRIVER="${driverName()}". Use "local" or "r2".`,
+      );
+  }
+
+  return driver;
+}
+
+/** Resolve / create the active driver (local mkdir, or R2 credential check). */
 export async function ensureStorage(): Promise<string> {
-  const root = path.resolve(rootDir());
-  await fs.mkdir(root, { recursive: true });
-  return root;
+  const active = getDriver();
+  await active.ensure();
+  return driverName() === "r2"
+    ? `r2://${process.env.R2_BUCKET}`
+    : process.env.STORAGE_PATH || "./.storage";
 }
 
-export async function saveBuffer(input: {
-  namespace: string;
-  buffer: Buffer;
-  ext?: string;
-  originalName?: string;
-}): Promise<{ relativePath: string; absolutePath: string; bytes: number }> {
-  const root = await ensureStorage();
-  const dir = path.join(root, input.namespace);
-  await fs.mkdir(dir, { recursive: true });
-
-  const safeExt =
-    (input.ext || path.extname(input.originalName || "").replace(/^\./, "") || "bin")
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "") || "bin";
-
-  const relativePath = path.join(
-    input.namespace,
-    `${Date.now()}-${randomUUID()}.${safeExt}`,
-  );
-  const absolutePath = path.join(root, relativePath);
-  await fs.writeFile(absolutePath, input.buffer);
-  return {
-    relativePath,
-    absolutePath,
-    bytes: input.buffer.byteLength,
-  };
+export async function saveBuffer(input: SaveBufferInput): Promise<SavedObject> {
+  return getDriver().save(input);
 }
 
 export async function readStoredFile(relativePath: string): Promise<Buffer> {
-  const absolutePath = path.join(await ensureStorage(), relativePath);
-  return fs.readFile(absolutePath);
+  return getDriver().read(relativePath);
 }
 
 export async function deleteStoredFile(relativePath: string): Promise<void> {
-  try {
-    await fs.unlink(path.join(await ensureStorage(), relativePath));
-  } catch {
-    /* ignore missing */
-  }
+  return getDriver().delete(relativePath);
 }

@@ -11,7 +11,7 @@ ugpilot/
 ├── packages/
 │   ├── db/                # Postgres (chats, mail, drafts, attachments)
 │   ├── logger/
-│   ├── storage/           # Local file storage for media
+│   ├── storage/           # Media storage (local / Cloudflare R2)
 │   ├── skills/
 │   │   ├── email/         # IMAP/SMTP
 │   │   ├── search/        # SearXNG
@@ -31,6 +31,3 @@ pnpm install
 pnpm --filter @ugpilot/telegram dev
 ```
 
-## License
-
-Private — all rights reserved.
