@@ -13,53 +13,62 @@ export function buildYcOutreachPrompt(input: YcOutreachPromptInput): string {
         `Search URL: ${c.url}`,
         `Scraped from: ${c.scrapeUrl}`,
         `Search blurb: ${c.blurb || "(none)"}`,
-        `Website scrape (use this - pick 1 concrete fact):`,
+        `Website scrape (PRIVATE context only - NEVER restate this back to them):`,
         c.scrapedText || "(empty)",
       ].join("\n");
     })
     .join("\n\n");
 
-  return `Write cold outreach emails for Yash applying to / pitching these companies.
+  return `Write cold outreach emails for Yash.
 
 Candidate:
 - Name: ${input.profile.displayName || "Yash"}
 - Target role: ${input.profile.targetRole || "(not set)"}
-- Resume / proof (use SPECIFIC projects from here):
+- Resume / proof (pull SPECIFIC projects from here):
 ${resume}
 
 User query: ${input.companyQuery}
 
-Scraped companies:
+Scraped companies (for YOUR brain only):
 ${companiesBlock || "(no companies scraped)"}
 
-CRITICAL OUTPUT RULES (break any = bad email):
-1. THE FIRST SENTENCE AFTER THE GREETING must be the deliverable line. Format:
-   "{company} is a {batch/stage if known} company that {what they build from scrape}. I can build you {specific agent/feature/thing they would actually want}."
-   Example: "result.dev is a YC W26 company that builds AI agents for ecommerce. I can build you an agent for UGC generation, abandoned cart revival, etc."
-   This line is the whole point. If it is vague ("I'd love to contribute" / "excited about your mission") the draft FAILS.
-2. Body: max 5 sentences OR 100 words, whichever is shorter. Prefer fewer.
-3. Use bullet points for the 2-3 concrete things Yash can ship (pulled from resume, mapped to THEIR product).
-4. Reference ONE specific fact from the scrape (product, customer, batch, feature). Not generic praise.
-5. Start greeting with exactly one of: hey / hello / hi / yo (lowercase ok). Address contact if known.
-6. Sign off with exactly: - yash
-7. NEVER use the unicode characters U+2014 or U+2013 (long dashes). Use commas, periods, or ASCII hyphen (-). Non-negotiable.
-8. Sound human. No fluff, no "I hope this finds you well", no "passionate about", no template sludge.
-9. Do NOT claim you sent anything.
+CRITICAL RULES (break any = fail):
 
-For each company output this block:
+1. NEVER explain the company to the company.
+   Banned patterns (instant fail):
+   - "{company} is a ... company that builds/does..."
+   - "I saw you build X / you help customers with Y"
+   - paraphrasing their About page, tagline, or homepage back at them
+   They already know what they do. Scrape = silent context so YOU pick the right offer.
+
+2. FIRST sentence after greeting = only what Yash can DELIVER for them.
+   Format: "I can build/ship you {specific thing(s) that fit their product}."
+   Good: "I can build you agents for UGC generation, abandoned cart revival, and post-purchase upsells."
+   Good: "I can ship a Discord + Telegram bot that onboards your B2B trial users in under a day."
+   Bad: "Acme is a YC company that builds AI for ecommerce. I can..."
+   Bad: "Excited about your mission / love what you're building / I'd love to contribute"
+
+3. Body: max 5 sentences OR 100 words (whichever shorter). Prefer less.
+4. 2-3 bullets: concrete ships mapped from resume -> their stack/problem. No fluff bullets.
+5. Greeting: hey / hello / hi / yo. Sign-off exactly: - yash
+6. No unicode long dashes. ASCII hyphen (-) only if needed.
+7. Sound human. No "hope this finds you well", "passionate", template sludge.
+8. Do not claim anything was sent.
+
+Output per company:
 
 1. Company: <name>
-Why fit: <one line>
+Why fit: <one line for Yash, not for the email>
 To: <email or NEED_EMAIL@example.com>
-Subject: <one short line, no long dashes>
+Subject: <short, about the deliverable, not their tagline>
 Body:
 hey <name or team>,
 
-<DELIVERABLE LINE - see rule 1>
+<DELIVERABLE ONLY - rule 2>
 
-- <concrete thing 1>
-- <concrete thing 2>
-- <optional concrete thing 3>
+- <concrete ship 1>
+- <concrete ship 2>
+- <optional ship 3>
 
 - yash
 `;
