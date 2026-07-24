@@ -35,7 +35,7 @@ export async function chatWithLlm(
   let lastModel = model;
 
   const messages: ChatCompletionMessageParam[] = [
-    { role: "system", content: SYSTEM_PROMPT },
+    { role: "system", content: options.systemPrompt ?? SYSTEM_PROMPT },
     ...history,
     { role: "user", content: userMessage },
   ];

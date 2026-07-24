@@ -52,7 +52,7 @@ export function parseEmailDraftBlocks(text: string): ParsedEmailDraft[] {
 
     out.push({
       to,
-      subject,
+      subject: subject.replace(/[\u2014\u2013\u2012\u2015]/g, "-"),
       body: scrubEmailBody(bodyMatch[1].trim()),
       company: block.match(/Company:\s*([^\n]+)/i)?.[1]?.trim(),
     });

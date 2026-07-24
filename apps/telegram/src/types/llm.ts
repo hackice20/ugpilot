@@ -5,6 +5,8 @@ export type ChatHistoryTurn = {
 
 export type ChatWithLlmOptions = {
   enableTools?: boolean;
+  /** Replaces the default SYSTEM_PROMPT when set. */
+  systemPrompt?: string;
 };
 
 export type ChatResult = {

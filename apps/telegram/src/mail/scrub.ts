@@ -23,6 +23,10 @@ export function scrubEmailBody(body: string): string {
 
   // If multiple drafts numbered, keep first only
   text = text.split(/\n(?=\d+\.\s)/)[0]?.trim() ?? text;
+
+  // Kill em/en dashes the model sneaks in despite the system prompt
+  text = text.replace(/[\u2014\u2013\u2012\u2015]/g, "-");
+
   return text.trim();
 }
 
