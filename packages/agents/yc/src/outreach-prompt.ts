@@ -1,10 +1,41 @@
 import type { YcOutreachPromptInput } from "./types.js";
 
+const CANDIDATE = {
+  name: "Yash",
+  portfolio: "https://yashworks.com",
+  resumeUrl: "https://yashworks.com/resume",
+  email: "contact@yashworks.com",
+};
+
+/**
+ * Ground-truth resume summary. Use when attachment text is missing.
+ * Do NOT invent beyond this + attached resume text.
+ */
+export const RESUME_FACTS = `Yash Kamble - Full-stack / backend engineer
+Email: contact@yashworks.com | yashworks.com | github.com/hackice20
+
+Education: BE Information Technology, D.Y. Patil Institute of Technology (SPPU), Nov 2022 - Jun 2026, CGPA 7.86
+
+Experience:
+- Full Value Technologies (Full-Stack Developer Intern): PostgreSQL, Angular, Nest.js, Elasticsearch, Redis, RabbitMQ. Elasticsearch search across 4 data sources for 2 enterprise clients. Signed URL downloads + Redis cache. Unified JWT auth service with dynamic DB routing.
+- Magnacamz Technologies (Full-Stack Developer Intern): Express, React, Node.js, TypeScript, Tailwind, MongoDB. 3 full-stack apps, rate limiting/caching (~40% backend gain), SEO UIs (Lighthouse 90+).
+
+Projects (ONLY these - do not invent others):
+- QueryNox: multi-model AI chat platform (React, TS, Node, Express, PostgreSQL, AWS EC2, NGINX, Cloudflare R2, Prometheus/Grafana/Loki). 8+ models, RAG, 100+ users, 30K+ req/month.
+- Sync-Script: real-time collaborative editor (Socket.IO, MongoDB, React).
+- Micro-GPT: GPT from scratch in PyTorch.
+
+Also: HackerRank 5-star Java, LeetCode ~1729, 500+ problems.`;
+
+/**
+ * Cold email writer - short, point-wise, resume-honest.
+ */
 export function buildYcOutreachPrompt(input: YcOutreachPromptInput): string {
+  const displayName = input.profile.displayName?.trim() || CANDIDATE.name;
   const resume =
     input.profile.resumeAttached?.trim() ||
     input.profile.resumeBlurb?.trim() ||
-    "(no resume yet - user may attach PDF next)";
+    RESUME_FACTS;
 
   const companiesBlock = input.companies
     .map((c, i) => {
@@ -13,63 +44,93 @@ export function buildYcOutreachPrompt(input: YcOutreachPromptInput): string {
         `Search URL: ${c.url}`,
         `Scraped from: ${c.scrapeUrl}`,
         `Search blurb: ${c.blurb || "(none)"}`,
-        `Website scrape (PRIVATE context only - NEVER restate this back to them):`,
+        `Website scrape (one specific detail for bullet 1):`,
         c.scrapedText || "(empty)",
       ].join("\n");
     })
     .join("\n\n");
 
-  return `Write cold outreach emails for Yash.
+  return `Write SHORT cold emails for ${displayName}. Point-wise. Not a cover letter. Not long prose.
 
 Candidate:
-- Name: ${input.profile.displayName || "Yash"}
+- Name: ${displayName}
+- Portfolio: ${CANDIDATE.portfolio}
+- Resume URL: ${CANDIDATE.resumeUrl}
+- Email: ${CANDIDATE.email}
 - Target role: ${input.profile.targetRole || "(not set)"}
-- Resume / proof (pull SPECIFIC projects from here):
+
+RESUME (cite ONLY this - never invent):
 ${resume}
 
 User query: ${input.companyQuery}
 
-Scraped companies (for YOUR brain only):
-${companiesBlock || "(no companies scraped)"}
+Scraped companies:
+${companiesBlock || "(none)"}
 
-CRITICAL RULES (break any = fail):
+## Subject (exact)
+Quick intro - ${displayName}
 
-1. NEVER explain the company to the company.
-   Banned patterns (instant fail):
-   - "{company} is a ... company that builds/does..."
-   - "I saw you build X / you help customers with Y"
-   - paraphrasing their About page, tagline, or homepage back at them
-   They already know what they do. Scrape = silent context so YOU pick the right offer.
+## Body shape (mandatory)
+1. Greeting line: Hi <Name>,
+2. ONE short opener sentence (specific thing from scrape - not "{Company} builds X", not generic praise).
+3. Exactly 4 or 5 bullet points. That is the email. No essay paragraphs after the opener.
+4. Then:
+More about me: ${CANDIDATE.portfolio}
 
-2. FIRST sentence after greeting = only what Yash can DELIVER for them.
-   Format: "I can build/ship you {specific thing(s) that fit their product}."
-   Good: "I can build you agents for UGC generation, abandoned cart revival, and post-purchase upsells."
-   Good: "I can ship a Discord + Telegram bot that onboards your B2B trial users in under a day."
-   Bad: "Acme is a YC company that builds AI for ecommerce. I can..."
-   Bad: "Excited about your mission / love what you're building / I'd love to contribute"
+${displayName}
+${CANDIDATE.email}
 
-3. Body: max 5 sentences OR 100 words (whichever shorter). Prefer less.
-4. 2-3 bullets: concrete ships mapped from resume -> their stack/problem. No fluff bullets.
-5. Greeting: hey / hello / hi / yo. Sign-off exactly: - yash
-6. No unicode long dashes. ASCII hyphen (-) only if needed.
-7. Sound human. No "hope this finds you well", "passionate", template sludge.
-8. Do not claim anything was sent.
+## What the 4-5 bullets are
+- Bullet 1: specific observation about THEIR product/tech (from scrape) OR the concrete thing you can ship for them
+- Bullets 2-4: real resume facts only (Nest/Elasticsearch/Redis/auth, QueryNox, etc.)
+- Bullet 5 (optional): honest technical fit in one line
+If company domain != resume domain: bullets stay technical (APIs, search, auth, shipping). Do NOT invent matching-domain projects.
 
-Output per company:
+## Body bans (instant fail)
+- No labels inside Body: Hook / Why fit / Connection / Who I am / Opening / Closing
+- No long paragraphs (max 1 opener sentence + bullets)
+- No inventing resume items
+- No "based in" / location
+- No unicode em/en dashes
+- No "I look forward to hearing from you" / "love the opportunity"
+
+## Example Body
+Hi Marcus,
+
+Spent time on your clinical data + LLM infra angle - rebuilding the data flow, not just wrapping a model.
+
+- Nest.js / Node APIs with Elasticsearch across multiple data sources for enterprise clients
+- Redis-backed signed downloads + unified JWT auth
+- Shipped QueryNox: multi-model AI chat, RAG, streaming, 30K+ req/month
+- Comfortable owning backend + infra (AWS EC2, NGINX, observability)
+- Happy to dig into whatever API / search / data layer work you need next
+
+More about me: ${CANDIDATE.portfolio}
+
+${displayName}
+${CANDIDATE.email}
+
+## Output per company
+Why fit is private notes for Yash - NOT in Body.
 
 1. Company: <name>
-Why fit: <one line for Yash, not for the email>
+Why fit: <one technical line>
 To: <email or NEED_EMAIL@example.com>
-Subject: <short, about the deliverable, not their tagline>
+Subject: Quick intro - ${displayName}
 Body:
-hey <name or team>,
+Hi <Name>,
 
-<DELIVERABLE ONLY - rule 2>
+<one opener sentence>
 
-- <concrete ship 1>
-- <concrete ship 2>
-- <optional ship 3>
+- <bullet>
+- <bullet>
+- <bullet>
+- <bullet>
+- <optional 5th bullet>
 
-- yash
+More about me: ${CANDIDATE.portfolio}
+
+${displayName}
+${CANDIDATE.email}
 `;
 }

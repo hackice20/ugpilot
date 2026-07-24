@@ -27,7 +27,24 @@ export function scrubEmailBody(body: string): string {
   // Kill em/en dashes the model sneaks in despite the system prompt
   text = text.replace(/[\u2014\u2013\u2012\u2015]/g, "-");
 
-  return text.trim();
+  // Kill location leaks (including "based in undefined" from bad prompts)
+  text = text.replace(/^[^\n]*\bbased in\b[^\n]*\n+/gim, "");
+  text = text.replace(/\n[^\n]*\bbased in\b[^\n]*/gi, "");
+
+  // Kill outline labels the model dumps into the email
+  text = text.replace(
+    /^\s*(?:hook|the hook|opening|why\s+fit|why\s+i(?:'m| am) a fit|connection|who\s+i\s+am|closing|location|portfolio|body)\s*:?\s*$/gim,
+    "",
+  );
+  text = text.replace(
+    /^\s*(?:hook|the hook|opening|why\s+fit|why\s+i(?:'m| am) a fit|connection|who\s+i\s+am|closing|location)\s*:\s*/gim,
+    "",
+  );
+
+  // Collapse leftover blank lines
+  text = text.replace(/\n{3,}/g, "\n\n").trim();
+
+  return text;
 }
 
 export function isPlaceholderRecipient(email: string): boolean {

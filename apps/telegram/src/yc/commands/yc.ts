@@ -10,6 +10,7 @@ import {
   findYcCompanies,
   scrapeYcCompanies,
   buildYcOutreachPrompt,
+  RESUME_FACTS,
 } from "@ugpilot/agents-yc";
 import { chatWithLlm } from "../../llm/index.js";
 import { ensureChat, getTelegramUserId, replyLong } from "../../lib/index.js";
@@ -125,13 +126,14 @@ async function handleDraft(
   const content = stripLongDashes(result.content);
   const creds = await getActiveMailCredentials(userId);
   const parsed = parseEmailDraftBlocks(content);
+  const forcedSubject = `Quick intro - ${profile?.display_name?.trim() || "Yash"}`;
 
   if (parsed.length === 0) {
     const draft = await createMailDraft({
       telegramUserId: userId,
       mailAccountId: creds?.id,
       toEmail: "NEED_EMAIL@example.com",
-      subject: `YC outreach: ${query}`,
+      subject: forcedSubject,
       body: content,
       meta: { query, source: "yc.draft", scraped: companies.length },
     });
@@ -149,7 +151,7 @@ async function handleDraft(
       telegramUserId: userId,
       mailAccountId: creds?.id,
       toEmail: d.to,
-      subject: d.subject,
+      subject: forcedSubject,
       body: d.body,
       meta: {
         query,
@@ -167,15 +169,15 @@ async function handleDraft(
   );
 }
 
-const YC_DRAFT_SYSTEM_PROMPT = `You draft short cold emails for Yash.
+const YC_DRAFT_SYSTEM_PROMPT = `You write SHORT cold emails for Yash.
 
-Hard rules:
-- NEVER tell a company what their own product is. No "you build X", no About-page paraphrase.
-- Scrape/context is private. Use it only to choose what to offer.
-- First line after greeting = deliverable only ("I can build/ship you ...").
-- Max 5 sentences or 100 words. Bullets for concrete ships.
-- Greeting: hey / hello / hi / yo. Sign-off: - yash
-- No unicode long dashes. No fluff. Follow the user format exactly.`;
+Format:
+- Subject exactly: Quick intro - Yash
+- Body: Hi <Name>, then ONE opener sentence, then exactly 4-5 bullet points, then portfolio + sign-off
+- No essays. No section labels (Hook/Why fit/etc.) in Body.
+- Resume facts only. Domain mismatch => technical bullets (APIs/search/auth), never invent domain projects.
+- Never "based in". Portfolio https://yashworks.com. Sign-off Yash / contact@yashworks.com
+- No unicode long dashes.`;
 
 function stripLongDashes(text: string): string {
   return text.replace(/[\u2014\u2013\u2012\u2015]/g, "-");
@@ -192,9 +194,10 @@ async function loadAttachedResume(chatId: string): Promise<string | null> {
 
   // Prefer a file that looks like a resume; else most recent doc.
   const resumeish =
-    docs.find((a) => /resume|cv|curriculum/i.test(a.fileName)) ??
+    docs.find((a) => /resume|cv|curriculum|yash/i.test(a.fileName)) ??
     docs[docs.length - 1];
 
   if (!resumeish) return null;
-  return `[Attached ${resumeish.fileName}]\n${resumeish.extractedText.slice(0, 12_000)}`;
+
+  return `${RESUME_FACTS}\n\n[Attached ${resumeish.fileName}]\n${resumeish.extractedText.slice(0, 12_000)}`;
 }
